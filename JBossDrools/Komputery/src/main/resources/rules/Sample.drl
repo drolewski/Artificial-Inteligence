@@ -1,0 +1,170 @@
+package com.sample
+ 
+import com.sample.DroolsTest.*;
+ 
+rule "Hello World"
+    when
+        m : Message( status == Message.HELLO, myMessage : message )
+    then
+        System.out.println( myMessage );
+        m.setMessage( "Goodbye cruel world" );
+        m.setStatus( Message.GOODBYE );
+        update( m );
+end
+
+rule "GoodBye"
+    when
+        Message( status == Message.GOODBYE, myMessage : message )
+    then
+        System.out.println( myMessage );
+end
+
+rule "Init"
+	when
+	then
+    	insert(new Procesor ("GPP X6", "QW3"));
+    	insert(new Procesor ("GPP Fenomenalny", "QW3"));
+		insert(new Procesor ("Orthank a5", "XYZ1150"));
+		insert(new Procesor ("Orthank a7", "XYZ1150"));  
+    
+		insert (new PlytaGlowna ("Rohan Bud¿etowy", "QW3", false, false));
+		insert (new PlytaGlowna ("Rohan Extra", "QW3", true, false));
+		insert (new PlytaGlowna ("Gondor", "XYZ1150", true, true));
+	 
+		insert (new KartaGraficzna ("Asus HD7790-DC2OC-1GD5"));
+		insert (new KartaGraficzna ("Gigabyte GV-N660OC-2GD"));
+		insert (new KartaGraficzna ("MSI N660 TF 2GD5/OC"));
+	 
+		insert (new KartaDzwiekowa ("Asus Xonar DG"));
+		insert (new KartaDzwiekowa ("Creative Sound Blaster X-Fi Surround 5.1 Pro"));
+		insert (new KartaDzwiekowa ("ASUS Xonar DX/XD 7.1"));
+	 
+		insert (new DyskTwardy ("Plextor M5S PX-128M5S"));
+		insert (new DyskTwardy ("Seagate Barracuda 7200 ST1000DM003"));
+		insert (new DyskTwardy ("Western Digital Caviar Blue WD10EZEX"));
+end
+
+rule "pustyKomputerProcesor" salience 20 
+    when
+        k : Komputer (procesor == null, plytaGlowna == null)
+        pr: Procesor()
+        p : Pytanie(tresc not matches "wybierz dysk", tresc not matches "wybierz plyte")
+    then
+    	System.out.println("Pytanie");
+    	p.tresc = "wybierz procesor";
+    	(p.odpowiedzi).add(pr);
+    	update(p);
+    	 retract(pr);
+		
+end
+
+rule "pustyKomputerProcesor-2" salience 20 
+    when
+        k : Komputer (procesor == null, plytaGlowna != null)
+        pr: Procesor(gniazdo == k.plytaGlowna.gniazdo)
+        p : Pytanie(tresc not matches "wybierz dysk")
+    then
+    	System.out.println("Pytanie");
+    	p.tresc = "wybierz procesor";
+    	(p.odpowiedzi).add(pr);
+    	update(p);
+    	 retract(pr);
+		
+end
+
+rule "Plyta"
+    when
+        k : Komputer (plytaGlowna == null, procesor != null)
+        pl : PlytaGlowna(gniazdo == k.procesor.gniazdo)
+        p : Pytanie(tresc not matches "wybierz dysk")
+    then
+    	System.out.println("Pytanie");
+    	p.tresc = "wybierz plyte";
+  
+		(p.odpowiedzi).add(pl);
+		update(p);
+		retract(pl);
+	
+end
+
+rule "Plyta-2"
+    when
+        k : Komputer (plytaGlowna == null, procesor == null)
+        pl : PlytaGlowna()
+        p : Pytanie(tresc not matches "wybierz dysk", tresc not matches "wybierz procesor")
+    then
+    	System.out.println("Pytanie");
+    	p.tresc = "wybierz plyte";
+  
+		(p.odpowiedzi).add(pl);
+		update(p);
+		retract(pl);
+	
+end
+
+rule "Grafika" salience 10
+    when
+        k : Komputer (kartaGraficzna == null, plytaGlowna != null, plytaGlowna.zintegrowanaGrafika == false)
+        pl : KartaGraficzna()
+        p : Pytanie(tresc not matches "wybierz karte dzwiekowa")
+    then
+    	System.out.println(pl.typ);
+    	p.tresc = "wybierz_karte_graficzna";
+    	
+  
+		(p.odpowiedzi).add(pl);
+		update(p);
+		retract(pl);
+end
+
+rule "Grafika-integra" salience 10
+    when
+        k : Komputer (kartaGraficzna == null, plytaGlowna != null, plytaGlowna.zintegrowanaGrafika == true)
+    then
+    	
+		k.kartaGraficzna = new KartaGraficzna("Zintegrowana");
+		update(k);
+end
+
+
+
+rule "Dzwiekowa" salience 10
+    when
+        k : Komputer (kartaDzwiekowa == null, plytaGlowna != null, plytaGlowna.zintegrowanyDzwiek == false)
+        pl : KartaDzwiekowa()
+        p : Pytanie(tresc not matches "wybierz_karte_graficzna")
+    then
+    	System.out.println("Pytanie");
+    	p.tresc = "wybierz karte dzwiekowa";
+  
+  
+		(p.odpowiedzi).add(pl);
+		update(p);
+		retract(pl);
+end
+
+rule "Dzwiekowa-integra" salience 10
+    when
+        k : Komputer (kartaDzwiekowa == null, plytaGlowna != null, plytaGlowna.zintegrowanyDzwiek == true)
+       
+    then
+    	k.kartaDzwiekowa = new KartaDzwiekowa("Zintegrowana");
+    	update(k);
+end
+
+
+rule "Dysk" salience 40
+    when
+        k : Komputer (dysk == null)
+        pl : DyskTwardy()
+        p : Pytanie(tresc not matches "wybierz procesor", tresc not matches "wybierz plyte")
+    then
+    	System.out.println("Pytanie");
+    	p.tresc = "wybierz dysk";
+  
+  
+		(p.odpowiedzi).add(pl);
+		update(p);
+		retract(pl);
+end
+
