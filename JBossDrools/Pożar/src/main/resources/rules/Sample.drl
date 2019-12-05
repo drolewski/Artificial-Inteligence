@@ -1,0 +1,65 @@
+package com.sample
+
+import com.sample.Pomiar;
+import com.sample.Pozar;
+import com.sample.Telefon;
+import com.sample.Straz;
+ 
+ rule "start"
+ 	when
+ 	then
+ 		insert(new Pomiar(10.0f, true));
+ 		insert(new Pomiar(150.0f, false));
+ end;
+ 
+ 
+ rule "Pozar"
+ 	when
+ 		exists Pomiar(dym == true || temperatura > 150.0f);
+ 	then
+ 		insert(new Pozar());
+ end;
+ 
+ rule "pali sie"
+ 	when
+ 		Pozar();
+ 	then
+ 		System.out.println("Pali siê!");
+ end;
+ 
+ rule "telefon"
+ 	when
+ 		Pozar();
+ 	then
+ 		insert(new Telefon());
+ 		insert(new Straz());
+ end;
+ 
+ 
+ rule "dodaj tele"
+ 	when
+ 		p : Telefon();
+ 	then
+ 		p.numer = "112";
+ 		System.out.println("Proszê zadzwoniæ na numer " + p.numer);
+ 		update(p);
+ end;
+ 
+ rule "straz"
+ 	when
+		s: Straz();
+		p: Pozar();
+ 	then
+ 		System.out.println("Straz przyjechala");
+ 		retract(p);
+ end;
+ 
+ rule "odjazd"
+ 	when
+ 		not Pozar();
+ 		s: Straz();
+ 	then
+ 		System.out.println("Straz odjechala");
+ end;
+ 
+ 
